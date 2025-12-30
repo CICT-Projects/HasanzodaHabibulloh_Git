@@ -1,0 +1,45 @@
+@model backend.Models.Car
+
+@{
+    ViewData["Title"] = "Удалить автомобиль";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <h1 class="text-danger">@ViewData["Title"]</h1>
+            <hr />
+
+            <div class="alert alert-warning">
+                <strong>Внимание!</strong> Вы собираетесь удалить запись. Это действие необратимо.
+            </div>
+
+            <dl class="row">
+                <dt class="col-sm-3">Марка</dt>
+                <dd class="col-sm-9">@Model.Brand</dd>
+
+                <dt class="col-sm-3">Модель</dt>
+                <dd class="col-sm-9">@Model.Model</dd>
+
+                <dt class="col-sm-3">Год выпуска</dt>
+                <dd class="col-sm-9">@Model.Year</dd>
+
+                <dt class="col-sm-3">Цвет</dt>
+                <dd class="col-sm-9">
+                    <span class="badge" style="background-color: @(Model.Color ?? "gray")">
+                        @Model.Color
+                    </span>
+                </dd>
+            </dl>
+
+            <form asp-action="Delete" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="Id" />
+                <button type="submit" class="btn btn-danger">
+                    <i class="bi bi-trash"></i> Удалить
+                </button>
+                <a asp-action="Index" class="btn btn-secondary">Отмена</a>
+            </form>
+        </div>
+    </div>
+</div>

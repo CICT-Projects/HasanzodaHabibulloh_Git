@@ -1,0 +1,74 @@
+@model IEnumerable<backend.Models.Oil>
+
+@{
+    ViewData["Title"] = "Масла";
+}
+
+<div class="container mt-4">
+    <div class="row mb-3">
+        <div class="col-md-8">
+            <h1 class="display-5">@ViewData["Title"]</h1>
+        </div>
+        <div class="col-md-4 text-end">
+            <a asp-action="Create" class="btn btn-success">
+                <i class="bi bi-plus"></i> Добавить новое
+            </a>
+        </div>
+    </div>
+
+    @if (Model.Any())
+    {
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Артикул</th>
+                        <th>Название</th>
+                        <th>Цена</th>
+                        <th>Количество</th>
+                        <th>Вязкость</th>
+                        <th>Тип масла</th>
+                        <th>Дата создания</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>@item.Article</td>
+                            <td>@item.Name</td>
+                            <td>@item.Price.ToString("C")</td>
+                            <td>
+                                <span class="badge bg-@(item.Quantity > 5 ? "success" : "warning")">
+                                    @item.Quantity
+                                </span>
+                            </td>
+                            <td>@item.Viscosity</td>
+                            <td>@item.OilType</td>
+                            <td>@item.CreatedAt.ToString("g")</td>
+                            <td>
+                                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-primary" title="Редактировать">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info" title="Просмотр">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger" title="Удалить">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i> Нет данных для отображения.
+            <a asp-action="Create" class="alert-link">Добавить первую запись</a>
+        </div>
+    }
+</div>

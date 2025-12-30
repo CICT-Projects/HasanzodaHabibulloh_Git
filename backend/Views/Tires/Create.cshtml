@@ -1,0 +1,65 @@
+@model backend.Models.Tire
+
+@{
+    ViewData["Title"] = "Добавить шину";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <h1>@ViewData["Title"]</h1>
+            <hr />
+
+            <form asp-action="Create" method="post" class="needs-validation" novalidate>
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label asp-for="Article" class="form-label">Артикул</label>
+                        <input asp-for="Article" class="form-control" />
+                        <span asp-validation-for="Article" class="invalid-feedback"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="Name" class="form-label">Название</label>
+                        <input asp-for="Name" class="form-control" />
+                        <span asp-validation-for="Name" class="invalid-feedback"></span>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label asp-for="Price" class="form-label">Цена (руб.)</label>
+                        <input asp-for="Price" type="number" step="0.01" class="form-control" />
+                        <span asp-validation-for="Price" class="invalid-feedback"></span>
+                    </div>
+                    <div class="col-md-4">
+                        <label asp-for="Quantity" class="form-label">Количество</label>
+                        <input asp-for="Quantity" type="number" class="form-control" />
+                        <span asp-validation-for="Quantity" class="invalid-feedback"></span>
+                    </div>
+                    <div class="col-md-4">
+                        <label asp-for="DiameterInches" class="form-label">Диаметр (дюйм)</label>
+                        <input asp-for="DiameterInches" type="number" class="form-control" />
+                        <span asp-validation-for="DiameterInches" class="invalid-feedback"></span>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="ProfileDescription" class="form-label">Описание профиля</label>
+                    <input asp-for="ProfileDescription" class="form-control" />
+                    <span asp-validation-for="ProfileDescription" class="invalid-feedback"></span>
+                </div>
+
+                <div class="mb-3">
+                    <button type="submit" class="btn btn-success">Сохранить</button>
+                    <a asp-action="Index" class="btn btn-secondary">Отмена</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

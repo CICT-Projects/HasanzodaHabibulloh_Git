@@ -1,0 +1,50 @@
+@model backend.Models.Oil
+
+@{
+    ViewData["Title"] = "Удалить масло";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <h1 class="text-danger">@ViewData["Title"]</h1>
+            <hr />
+
+            <div class="alert alert-warning">
+                <strong>Внимание!</strong> Вы собираетесь удалить запись. Это действие необратимо.
+            </div>
+
+            <dl class="row">
+                <dt class="col-sm-3">Артикул</dt>
+                <dd class="col-sm-9">@Model.Article</dd>
+
+                <dt class="col-sm-3">Название</dt>
+                <dd class="col-sm-9">@Model.Name</dd>
+
+                <dt class="col-sm-3">Цена</dt>
+                <dd class="col-sm-9">@Model.Price.ToString("C")</dd>
+
+                <dt class="col-sm-3">Количество</dt>
+                <dd class="col-sm-9">@Model.Quantity</dd>
+
+                <dt class="col-sm-3">Вязкость</dt>
+                <dd class="col-sm-9">@Model.Viscosity</dd>
+
+                <dt class="col-sm-3">Тип масла</dt>
+                <dd class="col-sm-9">@Model.OilType</dd>
+
+                <dt class="col-sm-3">Дата создания</dt>
+                <dd class="col-sm-9">@Model.CreatedAt.ToString("g")</dd>
+            </dl>
+
+            <form asp-action="Delete" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="Id" />
+                <button type="submit" class="btn btn-danger">
+                    <i class="bi bi-trash"></i> Удалить
+                </button>
+                <a asp-action="Index" class="btn btn-secondary">Отмена</a>
+            </form>
+        </div>
+    </div>
+</div>

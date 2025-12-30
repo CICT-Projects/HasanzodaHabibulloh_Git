@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRUD управление товарами</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .status {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .status.available {
+            border-left: 5px solid #28a745;
+        }
+        .status.unavailable {
+            border-left: 5px solid #dc3545;
+        }
+        .status.partial {
+            border-left: 5px solid #ffc107;
+        }
+        .status h2 {
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .status-icon {
+            font-size: 24px;
+        }
+        .main-content {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .form-section {
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #333;
+        }
+        input, select {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #5568d3;
+        }
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        .btn-danger:hover {
+            background: #c82333;
+        }
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        .btn-refresh {
+            background: #17a2b8;
+            color: white;
+        }
+        .btn-refresh:hover {
+            background: #138496;
+        }
+        .resource-select {
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .resource-select label {
+            margin: 0;
+        }
+        .resource-select select {
+            flex: 1;
+            max-width: 300px;
+        }
+        .table-section {
+            padding: 20px;
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th {
+            background: #f8f9fa;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #333;
+            border-bottom: 2px solid #dee2e6;
+        }
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #dee2e6;
+        }
+        tr:hover {
+            background: #f8f9fa;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+        }
+        .action-buttons button {
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+        .alert {
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
+        .alert-danger {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .alert-warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="status" id="statusBox">
+            <h2><span class="status-icon">🔄</span> Проверка доступности API...</h2>
+        </div>
+
+        <div class="main-content" id="mainContent" style="display: none;">
+            <div class="resource-select">
+                <label for="resourceSelect">Выберите ресурс:</label>
+                <select id="resourceSelect" onchange="changeResource(this.value)">
+                    <option value="tires">🛞 Шины</option>
+                    <option value="batteries">🔋 Аккумуляторы</option>
+                    <option value="oils">🛢️ Масла</option>
+                    <option value="filters">🔧 Фильтры</option>
+                    <option value="cars">🚗 Машины</option>
+                </select>
+            </div>
+
+            <div class="form-section">
+                <h3 id="formTitle">Создание новой записи</h3>
+                <div id="alertBox"></div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="name">Название:</label>
+                        <input type="text" id="name" placeholder="Название">
+                    </div>
+                    <div class="form-group" id="articleGroup">
+                        <label for="article">Артикул:</label>
+                        <input type="text" id="article" placeholder="Артикул">
+                    </div>
+                    <div class="form-group">
+                        <label for="price">Цена:</label>
+                        <input type="number" id="price" placeholder="Цена" step="0.01" min="0">
+                    </div>
+                    <div class="form-group" id="quantityGroup">
+                        <label for="quantity">Количество:</label>
+                        <input type="number" id="quantity" placeholder="Количество" min="0">
+                    </div>
+                </div>
+
+                <div class="form-row" id="tiresFields" style="display: none;">
+                    <div class="form-group">
+                        <label for="diameter">Диаметр (дюймы):</label>
+                        <input type="number" id="diameter" placeholder="Диаметр" min="1">
+                    </div>
+                    <div class="form-group">
+                        <label for="profileDesc">Описание профиля:</label>
+                        <input type="text" id="profileDesc" placeholder="Описание профиля">
+                    </div>
+                </div>
+
+                <div class="form-row" id="batteryFields" style="display: none;">
+                    <div class="form-group">
+                        <label for="voltage">Напряжение (V):</label>
+                        <input type="number" id="voltage" placeholder="Напряжение" min="1">
+                    </div>
+                    <div class="form-group">
+                        <label for="capacity">Емкость (Ач):</label>
+                        <input type="number" id="capacity" placeholder="Емкость" min="1">
+                    </div>
+                </div>
+
+                <div class="form-row" id="carFields" style="display: none;">
+                    <div class="form-group">
+                        <label for="brand">Марка:</label>
+                        <input type="text" id="brand" placeholder="Марка">
+                    </div>
+                    <div class="form-group">
+                        <label for="model">Модель:</label>
+                        <input type="text" id="model" placeholder="Модель">
+                    </div>
+                    <div class="form-group">
+                        <label for="year">Год:</label>
+                        <input type="number" id="year" placeholder="Год" min="1900">
+                    </div>
+                    <div class="form-group">
+                        <label for="color">Цвет:</label>
+                        <input type="text" id="color" placeholder="Цвет">
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn-primary" onclick="handleSave()" id="saveBtn">➕ Создать</button>
+                    <button class="btn-secondary" onclick="resetForm()" id="cancelBtn" style="display: none;">❌ Отмена</button>
+                </div>
+            </div>
+
+            <div class="table-section">
+                <h3>Список записей</h3>
+                <div id="tableContainer" class="loading">
+                    <div class="spinner"></div>
+                    <p>Загрузка данных...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentResource = 'tires';
+        let editingId = null;
+        const API_BASE = 'http://localhost:5016/api';
+        const RESOURCES = ['tires', 'batteries', 'oils', 'filters', 'cars'];
+
+        // Инициализация
+        document.addEventListener('DOMContentLoaded', () => {
+            checkApiStatus();
+        });
+
+        async function checkApiStatus() {
+            const missing = [];
+            
+            for (const resource of RESOURCES) {
+                try {
+                    await fetch(`${API_BASE}/${resource}`, { method: 'GET', signal: AbortSignal.timeout(3000) });
+                } catch (err) {
+                    missing.push(resource);
+                }
+            }
+
+            const statusBox = document.getElementById('statusBox');
+            const mainContent = document.getElementById('mainContent');
+
+            if (missing.length === 0) {
+                statusBox.className = 'status available';
+                statusBox.innerHTML = '<h2><span class="status-icon">✅</span> API доступен</h2>';
+                mainContent.style.display = 'block';
+                loadData();
+            } else if (missing.length === RESOURCES.length) {
+                statusBox.className = 'status unavailable';
+                statusBox.innerHTML = `
+                    <h2><span class="status-icon">❌</span> Backend недоступен</h2>
+                    <p>Убедитесь, что ASP.NET приложение запущено на http://localhost:5016</p>
+                    <p>Недоступные ресурсы: ${RESOURCES.join(', ')}</p>
+                    <button class="btn-refresh" onclick="location.reload()">🔄 Проверить снова</button>
+                `;
+            } else {
+                statusBox.className = 'status partial';
+                statusBox.innerHTML = `
+                    <h2><span class="status-icon">⚠️</span> Частичная доступность</h2>
+                    <p>Недоступные: ${missing.join(', ')}</p>
+                    <p>Доступные: ${RESOURCES.filter(r => !missing.includes(r)).join(', ')}</p>
+                    <button class="btn-refresh" onclick="location.reload()">🔄 Проверить снова</button>
+                `;
+                mainContent.style.display = 'block';
+                loadData();
+            }
+        }
+
+        function changeResource(resource) {
+            currentResource = resource;
+            editingId = null;
+            resetForm();
+            loadData();
+            updateFieldsVisibility();
+        }
+
+        function updateFieldsVisibility() {
+            document.getElementById('articleGroup').style.display = currentResource === 'cars' ? 'none' : 'flex';
+            document.getElementById('quantityGroup').style.display = currentResource === 'cars' ? 'none' : 'flex';
+            document.getElementById('tiresFields').style.display = currentResource === 'tires' ? 'grid' : 'none';
+            document.getElementById('batteryFields').style.display = currentResource === 'batteries' ? 'grid' : 'none';
+            document.getElementById('carFields').style.display = currentResource === 'cars' ? 'grid' : 'none';
+        }
+
+        async function loadData() {
+            const container = document.getElementById('tableContainer');
+            container.innerHTML = '<div class="loading"><div class="spinner"></div><p>Загрузка...</p></div>';
+            
+            try {
+                const response = await fetch(`${API_BASE}/${currentResource}`);
+                const data = await response.json();
+                renderTable(data);
+            } catch (err) {
+                container.innerHTML = `<div class="alert alert-danger">Ошибка загрузки: ${err.message}</div>`;
+            }
+        }
+
+        function renderTable(data) {
+            const container = document.getElementById('tableContainer');
+            if (!Array.isArray(data) || data.length === 0) {
+                container.innerHTML = '<p>Нет данных</p>';
+                return;
+            }
+
+            let headers = '<tr><th>ID</th>';
+            if (currentResource !== 'cars') {
+                headers += '<th>Название</th><th>Артикул</th><th>Цена</th><th>Количество</th>';
+                if (currentResource === 'tires') headers += '<th>Диаметр</th><th>Профиль</th>';
+                if (currentResource === 'batteries') headers += '<th>Напряжение</th><th>Емкость</th>';
+            } else {
+                headers += '<th>Марка</th><th>Модель</th><th>Год</th><th>Цвет</th><th>Цена</th>';
+            }
+            headers += '<th>Действия</th></tr>';
+
+            let rows = '';
+            for (const item of data) {
+                let row = `<tr>
+                    <td>${item.id}</td>`;
+                if (currentResource !== 'cars') {
+                    row += `<td>${item.name}</td>
+                            <td>${item.article}</td>
+                            <td>$${item.price?.toFixed(2)}</td>
+                            <td>${item.quantity}</td>`;
+                    if (currentResource === 'tires') {
+                        row += `<td>${item.diameterInches}"</td><td>${item.profileDescription}</td>`;
+                    }
+                    if (currentResource === 'batteries') {
+                        row += `<td>${item.voltageV}V</td><td>${item.capacityAh}Ач</td>`;
+                    }
+                } else {
+                    row += `<td>${item.brand}</td>
+                            <td>${item.model}</td>
+                            <td>${item.year}</td>
+                            <td>${item.color}</td>
+                            <td>$${item.price?.toFixed(2)}</td>`;
+                }
+                row += `<td>
+                    <div class="action-buttons">
+                        <button class="btn-primary" onclick="editItem(${item.id}, '${JSON.stringify(item).replace(/'/g, "&apos;")}')">✏️</button>
+                        <button class="btn-danger" onclick="deleteItem(${item.id})">🗑️</button>
+                    </div>
+                </td></tr>`;
+                rows += row;
+            }
+
+            container.innerHTML = `<table><thead>${headers}</thead><tbody>${rows}</tbody></table>`;
+        }
+
+        function editItem(id, itemJson) {
+            const item = JSON.parse(itemJson);
+            editingId = id;
+            
+            document.getElementById('name').value = item.name || '';
+            document.getElementById('article').value = item.article || '';
+            document.getElementById('price').value = item.price || '';
+            document.getElementById('quantity').value = item.quantity || '';
+            
+            if (currentResource === 'tires') {
+                document.getElementById('diameter').value = item.diameterInches || '';
+                document.getElementById('profileDesc').value = item.profileDescription || '';
+            } else if (currentResource === 'batteries') {
+                document.getElementById('voltage').value = item.voltageV || '';
+                document.getElementById('capacity').value = item.capacityAh || '';
+            } else if (currentResource === 'cars') {
+                document.getElementById('brand').value = item.brand || '';
+                document.getElementById('model').value = item.model || '';
+                document.getElementById('year').value = item.year || '';
+                document.getElementById('color').value = item.color || '';
+            }
+
+            document.getElementById('formTitle').textContent = 'Редактирование записи';
+            document.getElementById('saveBtn').textContent = '💾 Сохранить';
+            document.getElementById('cancelBtn').style.display = 'inline-block';
+            updateFieldsVisibility();
+            document.querySelector('.form-section').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        async function handleSave() {
+            const formData = getFormData();
+            if (!formData.Name) {
+                showAlert('Заполните название', 'danger');
+                return;
+            }
+
+            console.log('Отправляемые данные:', formData);
+
+            try {
+                if (editingId) {
+                    formData.Id = editingId;
+                    const response = await fetch(`${API_BASE}/${currentResource}/${editingId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(formData)
+                    });
+                    const text = await response.text();
+                    if (!response.ok) {
+                        console.error('Ошибка ответа:', text);
+                        throw new Error(text || 'Ошибка обновления');
+                    }
+                    showAlert('Запись обновлена', 'success');
+                } else {
+                    const response = await fetch(`${API_BASE}/${currentResource}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(formData)
+                    });
+                    const text = await response.text();
+                    if (!response.ok) {
+                        console.error('Ошибка ответа:', text);
+                        throw new Error(text || 'Ошибка создания');
+                    }
+                    showAlert('Запись создана', 'success');
+                }
+                resetForm();
+                loadData();
+            } catch (err) {
+                showAlert(`Ошибка: ${err.message}`, 'danger');
+            }
+        }
+
+        async function deleteItem(id) {
+            if (!confirm('Вы уверены?')) return;
+            
+            try {
+                const response = await fetch(`${API_BASE}/${currentResource}/${id}`, { method: 'DELETE' });
+                if (!response.ok) throw new Error('Ошибка удаления');
+                showAlert('Запись удалена', 'success');
+                loadData();
+            } catch (err) {
+                showAlert(`Ошибка: ${err.message}`, 'danger');
+            }
+        }
+
+        function getFormData() {
+            const priceValue = document.getElementById('price').value.trim();
+            const price = priceValue !== '' ? parseFloat(priceValue) : 0;
+            
+            const data = {
+                Name: document.getElementById('name').value.trim(),
+                Article: document.getElementById('article').value.trim(),
+                Price: isNaN(price) ? 0 : price,
+                Quantity: parseInt(document.getElementById('quantity').value) || 0
+            };
+
+            if (currentResource === 'tires') {
+                data.DiameterInches = parseInt(document.getElementById('diameter').value) || 0;
+                data.ProfileDescription = document.getElementById('profileDesc').value.trim();
+            } else if (currentResource === 'batteries') {
+                data.VoltageV = parseInt(document.getElementById('voltage').value) || 0;
+                data.CapacityAh = parseInt(document.getElementById('capacity').value) || 0;
+            } else if (currentResource === 'cars') {
+                data.Brand = document.getElementById('brand').value.trim();
+                data.Model = document.getElementById('model').value.trim();
+                data.Year = parseInt(document.getElementById('year').value) || new Date().getFullYear();
+                data.Color = document.getElementById('color').value.trim();
+            }
+
+            return data;
+        }
+
+        function resetForm() {
+            document.getElementById('name').value = '';
+            document.getElementById('article').value = '';
+            document.getElementById('price').value = '';
+            document.getElementById('quantity').value = '';
+            document.getElementById('diameter').value = '';
+            document.getElementById('profileDesc').value = '';
+            document.getElementById('voltage').value = '';
+            document.getElementById('capacity').value = '';
+            document.getElementById('brand').value = '';
+            document.getElementById('model').value = '';
+            document.getElementById('year').value = '';
+            document.getElementById('color').value = '';
+
+            document.getElementById('formTitle').textContent = 'Создание новой записи';
+            document.getElementById('saveBtn').textContent = '➕ Создать';
+            document.getElementById('cancelBtn').style.display = 'none';
+            document.getElementById('alertBox').innerHTML = '';
+            editingId = null;
+            updateFieldsVisibility();
+        }
+
+        function showAlert(message, type) {
+            const alertBox = document.getElementById('alertBox');
+            alertBox.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+            setTimeout(() => { alertBox.innerHTML = ''; }, 4000);
+        }
+
+        // Инициализация видимости полей
+        updateFieldsVisibility();
+    </script>
+</body>
+</html>

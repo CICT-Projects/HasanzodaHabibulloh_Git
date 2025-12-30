@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Система управления складом</title>
+    
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    
+    <style>
+        :root {
+            --primary-color: #667eea;
+            --secondary-color: #764ba2;
+            --danger-color: #f5576c;
+            --success-color: #00b89f;
+        }
+
+        body {
+            background-color: #f8f9fa;
+            color: #333;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        navbar {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+        }
+
+        .nav-link {
+            color: rgba(255, 255, 255, 0.9) !important;
+            font-weight: 500;
+            transition: color 0.3s ease;
+            margin-left: 5px;
+            margin-right: 5px;
+        }
+
+        .nav-link:hover {
+            color: #fff !important;
+            text-decoration: underline;
+        }
+
+        .dropdown-menu {
+            border-radius: 0.5rem;
+            border: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .dropdown-item {
+            transition: background-color 0.2s ease;
+        }
+
+        .dropdown-item:hover {
+            background-color: #e7f3ff;
+            color: var(--primary-color);
+        }
+
+        .dropdown-divider {
+            margin: 0.5rem 0;
+        }
+
+        footer {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 2rem 0;
+            margin-top: 3rem;
+            border-top: 1px solid #34495e;
+        }
+
+        footer a {
+            color: #3498db;
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        .breadcrumb {
+            background-color: rgba(0, 0, 0, 0.05);
+            border-radius: 0.5rem;
+        }
+
+        .badge-status {
+            font-size: 0.85rem;
+            padding: 0.4rem 0.8rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Навигация -->
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand" asp-controller="Home" asp-action="Index">
+                <i class="bi bi-box-seam"></i> Склад
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" asp-controller="Home" asp-action="Index">
+                            <i class="bi bi-house"></i> Главная
+                        </a>
+                    </li>
+                    
+                    <!-- Выпадающее меню: Запчасти -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="partsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-gear"></i> Запчасти
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="partsDropdown">
+                            <li>
+                                <a class="dropdown-item" asp-controller="Tires" asp-action="Index">
+                                    <i class="bi bi-bicycle"></i> Шины
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" asp-controller="Oils" asp-action="Index">
+                                    <i class="bi bi-droplet-fill"></i> Масла
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" asp-controller="Batteries" asp-action="Index">
+                                    <i class="bi bi-battery-charging"></i> Аккумуляторы
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" asp-controller="Filters" asp-action="Index">
+                                    <i class="bi bi-funnel-fill"></i> Фильтры
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><span class="dropdown-item-text text-muted small">Быстрые действия</span></li>
+                            <li>
+                                <a class="dropdown-item" asp-controller="Tires" asp-action="Create">
+                                    <i class="bi bi-plus-circle"></i> Добавить шину
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" asp-controller="Oils" asp-action="Create">
+                                    <i class="bi bi-plus-circle"></i> Добавить масло
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" asp-controller="Batteries" asp-action="Create">
+                                    <i class="bi bi-plus-circle"></i> Добавить аккумулятор
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" asp-controller="Filters" asp-action="Create">
+                                    <i class="bi bi-plus-circle"></i> Добавить фильтр
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+
+                    <!-- Выпадающее меню: Автомобили -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="carsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-car-front"></i> Автомобили
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="carsDropdown">
+                            <li>
+                                <a class="dropdown-item" asp-controller="Cars" asp-action="Index">
+                                    <i class="bi bi-list"></i> Все автомобили
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" asp-controller="Cars" asp-action="Create">
+                                    <i class="bi bi-plus-circle"></i> Добавить автомобиль
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Основной контент -->
+    <main class="py-4">
+        <div class="container-fluid">
+            @RenderBody()
+        </div>
+    </main>
+
+    <!-- Подвал -->
+    <footer class="mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h6 class="text-uppercase font-weight-bold mb-3">
+                        <i class="bi bi-box-seam"></i> Система управления складом
+                    </h6>
+                    <p class="text-muted">Полнофункциональная система управления автомобильными запчастями</p>
+                </div>
+                <div class="col-md-3">
+                    <h6 class="text-uppercase font-weight-bold mb-3">Модули</h6>
+                    <ul class="list-unstyled">
+                        <li><a asp-controller="Cars" asp-action="Index">Автомобили</a></li>
+                        <li><a asp-controller="Tires" asp-action="Index">Шины</a></li>
+                        <li><a asp-controller="Oils" asp-action="Index">Масла</a></li>
+                        <li><a asp-controller="Batteries" asp-action="Index">Аккумуляторы</a></li>
+                        <li><a asp-controller="Filters" asp-action="Index">Фильтры</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3">
+                    <h6 class="text-uppercase font-weight-bold mb-3">Информация</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="#">О системе</a></li>
+                        <li><a href="#">Справка</a></li>
+                        <li><a href="#">Контакты</a></li>
+                    </ul>
+                </div>
+            </div>
+            <hr class="bg-secondary" />
+            <div class="row">
+                <div class="col-12 text-center">
+                    <p class="text-muted mb-0">
+                        &copy; 2025 Система управления складом. Все права защищены. | 
+                        <span>Последнее обновление: @DateTime.Now.ToString("dd.MM.yyyy HH:mm")</span>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Validation Scripts -->
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+
+    <script>
+        // Автоматическая валидация форм Bootstrap
+        (function () {
+            'use strict';
+            window.addEventListener('load', function () {
+                var forms = document.querySelectorAll('.needs-validation');
+                Array.prototype.slice.call(forms).forEach(function (form) {
+                    form.addEventListener('submit', function (event) {
+                        if (!form.checkValidity()) {
+                            event.preventDefault();
+                            event.stopPropagation();
+                        }
+                        form.classList.add('was-validated');
+                    }, false);
+                });
+            });
+        })();
+    </script>
+    @RenderSection("Scripts", required: false)
+</body>
+</html>
